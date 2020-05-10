@@ -42,46 +42,37 @@ def OPT(S):
 
 def match(S):
     """ Match even's from the left with odd's from the right and vice versa """
-    matches_left = np.zeros((len(S), len(S)), dtype=int)
-    matches_right = np.zeros((len(S), len(S)), dtype=int)
+    matching_left = np.zeros((len(S), len(S)), dtype=int)
+    matching_right = np.zeros((len(S), len(S)), dtype=int)
 
     # counters for traversing the string
-    front = 0 # even
-    back = len(S) - 1 if len(S) % 2 == 0 else len(S) - 2 # odd
+    front = 0
+    back = len(S) - 1
     count_left = 0
-    while front <= 1/2 * len(S) or back >= 1/2 * len(S):
-        if S[front] == "h" and S[back] == "h":
-            # evens from the left, with odds from the right
-            matches_left[front, back] = 1
-            matches_left[back, front] = 1
-            front += 2
-            back  -= 2
-            count_left += 1
-        elif S[front] == "h":
-            back -= 2
-        else:
-            front += 2
-
-    front = 1 # odd
-    back = len(S) - 2 if len(S) % 2 == 0 else len(S) - 1 # even
     count_right = 0
     while front <= 1/2 * len(S) or back >= 1/2 * len(S):
         if S[front] == "h" and S[back] == "h":
-            # odds from the left, with evens from the right
-            matches_right[front, back] = 1
-            matches_right[back, front] = 1
-            front += 2
-            back  -= 2
-            count_right += 1
+            if front % 2 == 0 and back % 2 == 1: # evens from the left, with odds from the right
+                matching_left[front, back] = 1
+                matching_left[back, front] = 1
+                front += 1
+                back  -= 1
+                count_left += 1
+            elif front % 2 == 1 and back % 2 == 0: # odds from the left, with evens from the right
+                matching_right[front, back] = 1
+                matching_right[back, front] = 1
+                front += 1
+                back  -= 1
+                count_right += 1
         elif S[front] == "h":
-            back -= 2
+            back -= 1
         else:
-            front += 2
+            front += 1
 
     if count_left >= count_right:
-        return matches_left
+        return matching_left
     else:
-        return matches_right
+        return matching_right
 
 
 def fold(S):
