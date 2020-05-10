@@ -2,14 +2,32 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import argparse
 import numpy as np
+from math import floor
 
 # local imports
 import utilities.hpview3k
 
 
-S = "hhhhhhhhhhhhphphpphhpphhpphpphhpphhpphpphhpphhpphphphhhhhhhhhhhh"
-S2 = "hhphphphphhhhphppphppphpppphppphppphphhhhphphphphh"
+# S = "hhhhhhhhhhhhphphpphhpphhpphpphhpphhpphpphhpphhpphphphhhhhhhhhhhh"
+# S2 = "hhphphphphhhhphppphppphpppphppphppphphhhhphphphphh"
+
+
+def parse_arguments():
+    """ Parse the command line arguments """
+    S = "hhhhhhhhhhhhphphpphhpphhpphpphhpphhpphpphhpphhpphphphhhhhhhhhhhh"
+    visual_fold = False
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", help="HP-string", default=S)
+    parser.add_argument("-o", help="ASCII output [Y/n]", default=visual_fold)
+    args = parser.parse_args()
+    S = args.s
+    if args.o == "Y" or args.o == "y":
+        visual_fold = True
+
+    return S, visual_fold
 
 
 def even(S):
@@ -77,16 +95,41 @@ def match(S):
 
 def fold(S):
     """ Create a fold from the matching """
-    F = 0
+    F = 0 # fold
+    directions = {"n" : 0, "e" : 0, "s" : 0, "w" : 0}
 
     # match odd's and even's
     matching = match(S)
 
+    half = floor(1/2 * len(S))
+    S1 = S[0:half]
+    S2 = S[half:len(S)]
+
+    if even(S1) >= 1/2 * even(S) and odd(S2) >= 1/2 * odd(S):
+        print("Condition 1) satisfied")
+    elif even(S2) >= 1/2 * even(S) and odd(S1) >= 1/2 * odd(S):
+        print("Condition 2) satisfied")
+    else:
+        print("Turning point does not satisfy condition 1) or 2).")
+
+    energy = 0
+    i = 0
+    j = len(S2) - 1
+    while i <= len(S1) and j >= 0:
+        # print (i, j + len(S1))
+        if S1[i] == "h" and S2[j] == "h":
+            print(i, j + len(S1))
+            print(matching[i,j + len(S1)])
+        if S1[i] == "p" and S2[j] == "h":
+            str += "s"
+        i += 1
+        j -= 1
 
     return F
 
 
 def main():
+    S, visual_fold = parse_arguments()
     F = fold(S)
     pass
 
