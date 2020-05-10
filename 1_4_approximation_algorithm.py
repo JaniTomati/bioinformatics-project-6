@@ -9,6 +9,7 @@ import utilities.hpview3k
 
 
 S = "hhhhhhhhhhhhphphpphhpphhpphpphhpphhpphpphhpphhpphphphhhhhhhhhhhh"
+S2 = "hhphphphphhhhphppphppphpppphppphppphphhhhphphphphh"
 
 
 def even(S):
@@ -27,6 +28,16 @@ def odd(S):
         if S[i] == "h" and i % 2 == 1:
             result += 1
     return result
+
+
+def size_threshold(S):
+    """ Size >= 1/2 * min(|even(S)|, |odd(S)|)"""
+    return 1/2 * min(even(S), odd(S))
+
+
+def OPT(S):
+    """ Optimal fold: An h can form at most 2 bonds with h's of opposite parity """
+    return 2 * min(even(S), odd(S))
 
 
 def match(S):
@@ -73,11 +84,19 @@ def match(S):
         return matches_right
 
 
-def main():
+def fold(S):
+    """ Create a fold from the matching """
+    F = 0
+
     # match odd's and even's
     matching = match(S)
-    print(matching)
 
+
+    return F
+
+
+def main():
+    F = fold(S)
     pass
 
 
