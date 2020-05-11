@@ -5,6 +5,7 @@
 import argparse
 import numpy as np
 from math import floor
+import itertools
 
 # local imports
 import utilities.hpview3k
@@ -112,19 +113,32 @@ def fold(S):
     else:
         print("Turning point does not satisfy condition 1) or 2).")
 
+    # find fold with lowest free energy, i.e. fold with highest amount of connected, non-bonded H-H
     energy = 0
-    i = 0
-    j = len(S2) - 1
-    while i <= len(S1) and j >= 0:
-        # print (i, j + len(S1))
-        if S1[i] == "h" and S2[j] == "h":
-            print(i, j + len(S1))
-            print(matching[i,j + len(S1)])
-        if S1[i] == "p" and S2[j] == "h":
-            str += "s"
-        i += 1
-        j -= 1
+    # i = 0
+    # j = len(S2) - 1
+    # while i <= len(S1) and j >= 0:
+    #     # print (i, j + len(S1))
+    #     if S1[i] == "h" and S2[j] == "h":
+    #         print(i, j + len(S1))
+    #         print(matching[i,j + len(S1)])
+    #     if S1[i] == "p" and S2[j] == "h":
+    #         str += "s"
+    #     i += 1
+    #     j -= 1
 
+    # perm = permutations('ennnne', 3)
+    # for permutation in permutations('ennnne', 3):
+    #     print("1)")
+    #     print(permutation)
+
+
+    for char1 in itertools.product('en', repeat=len(S1)-1):
+        fold1 = "".join(char1)
+        for char2 in itertools.product('sw', repeat=len(S2)):
+            fold2 = "".join(char2)
+            print(fold1)
+            print(fold2, "\n")
     return F
 
 
