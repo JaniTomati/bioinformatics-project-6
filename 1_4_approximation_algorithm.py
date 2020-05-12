@@ -11,10 +11,6 @@ import itertools
 import utilities.hpview3k
 
 
-# S = "hhhhhhhhhhhhphphpphhpphhpphpphhpphhpphpphhpphhpphphphhhhhhhhhhhh"
-# S2 = "hhphphphphhhhphppphppphpppphppphppphphhhhphphphphh"
-
-
 def parse_arguments():
     """ Parse the command line arguments """
     S = "hhhhhhhhhhhhphphpphhpphhpphpphhpphhpphpphhpphhpphphphhhhhhhhhhhh"
@@ -61,25 +57,24 @@ def OPT(S):
 
 def match(S):
     """ Match even's from the left with odd's from the right and vice versa """
-    matching_left = np.zeros((len(S), len(S)), dtype=int)
-    matching_right = np.zeros((len(S), len(S)), dtype=int)
+    matching_left = []
+    matching_right = []
 
     # counters for traversing the string
     front = 0
     back = len(S) - 1
     count_left = 0
     count_right = 0
+
     while front <= 1/2 * len(S) or back >= 1/2 * len(S):
         if S[front] == "h" and S[back] == "h":
             if front % 2 == 0 and back % 2 == 1: # evens from the left, with odds from the right
-                matching_left[front, back] = 1
-                matching_left[back, front] = 1
+                matching_left.append((front, back))
                 front += 1
                 back  -= 1
                 count_left += 1
             elif front % 2 == 1 and back % 2 == 0: # odds from the left, with evens from the right
-                matching_right[front, back] = 1
-                matching_right[back, front] = 1
+                matching_right.append((front, back))
                 front += 1
                 back  -= 1
                 count_right += 1
@@ -89,14 +84,41 @@ def match(S):
             front += 1
 
     if count_left >= count_right:
+        print("Score of matching:", count_left)
         return matching_left
     else:
+        print("Score of matching:", count_right)
         return matching_right
+
+
+def create_absolute_format(current_match, next_match, dir):
+    """ Decide the direction to take from the indices that are supposed to match """
+    direction = {"east" : ["e", "n", "s"], "west" : ["w", "s", "n"]}
+    fold = ""
+
+    dst = abs(next_match - current_match)
+    if dst == 1:
+        fold += direction[dir][0]
+    if dst == 2:
+        fold += 2 * direction[dir][0]
+    else: # make a turn
+        turn = floor(dst / 2)
+        if dst % 2 == 0:
+            fold += (turn - 1) * direction[dir][1]
+            fold += direction[dir][0]
+            fold += (turn - 1) * direction[dir][2]
+            fold += direction[dir][0]
+        else:
+            fold += turn * direction[dir][1]
+            fold += direction[dir][0]
+            fold += turn * direction[dir][2]
+
+    return fold
 
 
 def fold(S):
     """ Create a fold from the matching """
-    F = 0 # fold
+    F = "" # fold
     directions = {"n" : 0, "e" : 0, "s" : 0, "w" : 0}
 
     # match odd's and even's
@@ -113,26 +135,26 @@ def fold(S):
     else:
         print("Turning point does not satisfy condition 1) or 2).")
 
-    # find fold with lowest free energy, i.e. fold with highest amount of connected, non-bonded H-H
-    energy = 0
-    i = 0
-    j = len(S2) - 1
     fold1 = ""
     fold2 = ""
-    while i < len(S1) and j >= 0:
-        if matching[i,j + len(S1)] == 1:
-            fold1 += "h"
-            fold2 += "h"
-            print(S1[i], S2[j])
-        else:
-            fold1 += "-"
-            fold2 += "-"
 
-        i += 1
-        j -= 1
+    # check everything before first match
+    if matching[0][0] != 0:
+        fold1 += create_absolute_format(0, matching[0][0], "east")
 
-    print(fold1)
-    print(fold2)
+    # do in-between matches
+    for i in range(len(matching) - 1):
+        fold1 += create_absolute_format(matching[i][0], matching[i + 1][0], "east")
+        fold2 += create_absolute_format(matching[i][1], matching[i + 1][1], "west")
+
+    # check everything after last match
+    if matching[0][1] != len(S): # check indices
+        fold2 += create_absolute_format(matching[0][1], len(S) - 1, "west")
+
+    F = fold1 + "s" +fold2[::-1]
+
+    print(F)
+    print(len(S), len(F))
 
     return F
 
@@ -140,7 +162,6 @@ def fold(S):
 def main():
     S, visual_fold = parse_arguments()
     F = fold(S)
-    pass
 
 
 if __name__ == '__main__':
