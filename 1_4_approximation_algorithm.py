@@ -148,9 +148,18 @@ def fold(S):
         fold2 += create_absolute_format(matching[i][1], matching[i + 1][1], "west")
 
     # check everything after last match
-    if matching[0][1] != len(S): # check indices
+    if matching[0][1] != len(S):
         fold2 += create_absolute_format(matching[0][1], len(S) - 1, "west")
 
+    # match from last match upper half to end
+    if matching[-1][0] != half:
+        fold1 += create_absolute_format(matching[-1][0], half, "east")
+
+    # match from end to first match lower half
+    if matching[-1][1] != half:
+        fold2 += create_absolute_format(half, matching[-1][1], "west")
+
+    # create full fold
     F = fold1 + "s" +fold2[::-1]
 
     print(F)
