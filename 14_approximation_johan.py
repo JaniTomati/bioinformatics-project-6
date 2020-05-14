@@ -10,189 +10,31 @@ import numpy as np
 from itertools import compress
 
 
-# -------- Start Christians Code from hpview3k.py --------
-class HPFold:
-    def __init__ (self, s):
-        legal = {'h':'h', 'p':'p', 'H':'h', 'P':'p'}
-        self.seq = []
-        i = 1
-        for c in s:
-            if c in legal.keys():
-                if legal[c] == 'h' and i % 2 == 0:
-                    self.seq.append('H')
-                else:
-                    self.seq.append(legal[c])
-                i = i + 1
-
-
-    def __len__ (self):
-        return len(self.seq)
-
-
-    def SetRelFold (self, relfold):
-        """
-        Fold seq according to a description in relavtive format, i.e.
-        a sequence of {f,l,r}'s which describe each step as (f)orward,
-        (l)eft, or (r)ight.
-        """
-        turn = {'f':0, 'l':-1, 'r':1}
-        direction = {0:'e', 1:'s', 2:'w', 3:'n'}
-        absfold = []
-        curr = 0
-        for relstep in relfold:
-            absstep = (curr + turn[relstep]) % 4
-            absfold.append(direction[absstep])
-            curr = absstep
-        return self.SetAbsFold(absfold)
-
-
-    def SetAbsFold (self, absfold):
-        """
-        Fold seq according to a description in absolute format, i.e.
-        s sequence of {n,s,e,w}'s which describe each step as (n)orth,
-        (s)outh, (e)ast, or (w)est.
-        """
-        self.legal_fold = (True, 0)
-        self.grid = {}
-        self.grid[0,0] = [0]
-        i = j = self.min_i= self.max_i = self.min_j = self.max_j = 0
-        k = 1
-        for step in absfold:
-            if step == 'n':
-                i = i - 1
-            elif step == 's':
-                i = i + 1
-            elif step == 'e':
-                j = j + 1
-            elif step == 'w':
-                j = j - 1
-            if (i,j) in self.grid.keys():
-                self.legal_fold = (False, k)
-                self.grid[i,j].append(k)
-            else:
-                self.grid[i,j] = [k]
-            k = k + 1
-            self.min_i = min(i, self.min_i)
-            self.max_i = max(i, self.max_i)
-            self.min_j = min(j, self.min_j)
-            self.max_j = max(j, self.max_j)
-        return self.legal_fold[0]
-
-
-    def ContainNeighbors(self, l1, l2):
-        """
-        Returns true if there exists k1 in l1 and k2 in l2 such that
-        abs(k1-k2) is 1, i.e. if the indices in l1 and l2 contain a
-        pair of neighbors in seq.
-        """
-        res = False
-        for k1 in l1:
-            for k2 in l2:
-                if abs(k1-k2) == 1:
-                    res = True
-        return res
-
-
-    def ContainHHs(self, l1, l2):
-        """
-        Returns true if there exists k1 in l1 and k2 in l2 where there
-        is a 'h' at position k1 and k2 in seq, i.e. if the indices in
-        l1 and l2 contain a pair which can make a h-h bond.
-        """
-        res = False
-        for k1 in l1:
-            for k2 in l2:
-                if (self.seq[k1] == "h" or self.seq[k1] == "H") and (self.seq[k2] == "h" or self.seq[k2] == "H"):
-                    res = True
-        return res
-
-
-    def PrintFold(self):
-        """
-        Print fold and output its score
-        """
-        score = 0
-        print()
-        for i in range(self.min_i, self.max_i+1):
-            for j in range(self.min_j, self.max_j+1):
-                if (i,j) in self.grid.keys():
-                    l1 = self.grid[i,j]
-                    if len(l1) == 1:
-                        print(self.seq[l1[0]], end="")
-                    else:
-                        print("X", end="")
-                    if (i,j+1) in self.grid.keys():
-                        l2 = self.grid[i,j+1]
-                        if self.ContainNeighbors(l1,l2):
-                            print("-", end="")
-                        elif self.ContainHHs(l1, l2):
-                            print("*", end="")
-                            score = score + 1
-                        else:
-                            print(" ", end="")
-                    else:
-                        print(" ", end="")
-                else:
-                    print(".", end="")
-                    print(" ", end="")
-            print()
-
-            for j in range(self.min_j, self.max_j+1):
-                if (i,j) in self.grid.keys() and (i+1,j) in self.grid.keys():
-                    l1 = self.grid[i,j]
-                    l2 = self.grid[i+1,j]
-                    if self.ContainNeighbors(l1,l2):
-                        print("|", end="")
-                    elif self.ContainHHs(l1,l2):
-                        print("*", end="")
-                        score = score + 1
-                    else:
-                        print(" ", end="")
-                else:
-                    print(" ", end="")
-                print(" ", end="")
-            print()
-
-        if self.legal_fold[0]:
-            print("Score: %d" % (score))
-        else:
-            print("Illegal fold after %d steps" % (self.legal_fold[1]))
-        return score
-
-
-def make_absfold(f):
-    absfold = []
-    for c in f.lower():
-        if c == 'n' or c == 's' or c == 'e' or c == 'w':
-            absfold.append(c)
-    return absfold
-
-
-def make_relfold(f):
-    relfold = []
-    for c in f.lower():
-        if c == 'f' or c == 'l' or c == 'r':
-            relfold.append(c)
-    return relfold
-
-
-# -------- End Christians Code --------
-
-
 def parse_arguments():
     """ Parse the command line arguments """
     S = "hhhhhhhhhhhhphphpphhpphhpphpphhpphhpphpphhpphhpphphphhhhhhhhhhhh"
-    benchmarks = False
+    benchmarks = ""
+    hpview_location = ""
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", help="HP-string", default=S)
-    parser.add_argument("-b", help="Run program on benchmarks.txt [Y/n]", default=benchmarks)
+    parser.add_argument("-b", help="Run program on benchmarks.txt <path-to-benchmark.txt>", default=benchmarks)
+    parser.add_argument("-v", help="Validate score using hpview3k.py <path-to-hpview3k.py>", default=hpview_location)
     args = parser.parse_args()
     S = args.s
-    if args.b == "Y" or args.b == "y":
-        benchmarks = True
+    if args.b != "":
+        benchmarks = args.b
+        if not os.path.exists(benchmarks):
+            sys.exit("Error: " + benchmarks + " does not exist!")
+    if args.v != "":
+        hpview_location = args.v
+        # check whether hpview3k exists in the given location
+        if hpview_location != "":
+            if not os.path.exists(hpview_location):
+                sys.exit("Error: " + hpview_location + " does not exist!")
 
-    return S, benchmarks
+
+    return S, benchmarks, hpview_location
 
 
 def read_in_hp_strings(file):
@@ -304,38 +146,154 @@ def get_abs_path(m):
     return final
 
 
+def score(hp, fold):
+    """ Score the non-connected H-H bonds in the fold of the hp sequence """
+    #Find mid
+    mid = None
+    for i in range(len(fold)):
+        if fold[i:i+3] == "esw":
+            mid=i
+            break
+    #Compute guide list
+    if hp[0] =="h":
+        pos = ["mih"]
+    else:
+        pos = ["mip"]
+    i=1
+    while i<mid:
+        if fold[i-1] =="n":
+            count=0
+            while fold[i-1] =="n":
+                count+=1
+                if hp[i] == "h":
+                    pos.append("lih")
+                else:
+                    pos.append("lip")
+                i+=1
+            for k in range(count):
+                if hp[i+k] =="h":
+                    pos.append("lih")
+                else:
+                    pos.append("lip")
+            i=i+count
+        else:
+            if hp[i]=="h":
+                pos.append("mih")
+            else:
+                pos.append("mip")
+            i+=1
+    for k in range(2):
+        if hp[mid+k] =="h":
+            pos.append("mih")
+        else:
+            pos.append("mip")
+    midi=mid+2
+    for k in range(2):
+        if hp[midi+k] =="h":
+            pos.append("mjh")
+        else:
+            pos.append("mjp")
+    j=midi+2
+    while j<len(hp):
+        if fold[j-1] =="s":
+            count=0
+            while fold[j-1] =="s":
+                count+=1
+                if hp[j] == "h":
+                    pos.append("ljh")
+                else:
+                    pos.append("ljp")
+                j+=1
+            for k in range(count):
+                if hp[j+k] =="h":
+                    pos.append("ljh")
+                else:
+                    pos.append("ljp")
+            j=j+count
+        else:
+            if hp[j]=="h":
+                pos.append("mjh")
+            else:
+                pos.append("mjp")
+            j+=1
+    #Count score
+    i=mid
+    j=mid+3
+    score=0
+    while i>=0 or j<len(hp):
+        if i<0:
+            if pos[j][0] =="l":
+                count=0
+                while pos[j][0]=="l":
+                    count+=1
+                    j+=1
+                for k in range((count//2)-1):
+                    if pos[j-1-k][2] =="h" and pos[j-count+k][2] == "h":
+                        score+=1
+                if pos[j][2] =="h" and pos[j+count-1][2] =="h":
+                    score +=1
+            else:
+                j+=1
+        elif j == len(hp):
+            if pos[i][0]=="l":
+                count=0
+                while pos[i][0]=="l":
+                    count+=1
+                    i-=1
+                for k in range((count//2)-1):
+                    if pos[i+1+k][2] =="h" and pos[i+count-k][2] == "h":
+                        score+=1
+                if pos[i][2] =="h" and pos[i+count+1][2] =="h":
+                    score +=1
+            else:
+                i-=1
+        else:
+            if pos[i][0] =="m" and pos[j][0] == "m":
+                if pos[i][2] == "h" and pos[j][2] == "h":
+                    score+=1
+                i-=1
+                j+=1
+            elif pos[i][0]=="l":
+                count=0
+                while pos[i][0]=="l":
+                    count+=1
+                    i-=1
+                for k in range((count//2)-1):
+                    if pos[i+1+k][2] =="h" and pos[i+count-k][2] == "h":
+                        score+=1
+                if pos[i][2] =="h" and pos[i+count+1][2] =="h":
+                    score +=1
+            elif pos[j][0] =="l":
+                count=0
+                while pos[j][0]=="l":
+                    count+=1
+                    j+=1
+                for k in range((count//2)-1):
+                    if pos[j-1-k][2] =="h" and pos[j-count+k][2] == "h":
+                        score+=1
+                if pos[j][2] =="h" and pos[j-count-1][2] =="h":
+                    score +=1
+
+    return score
+
+
 def hp(sequence):
     """ Calculate the fold of the hp sequence and assign to Christians data structure """
-    m = get_matches(sequence)#
-    print("Length of matching:", len(m))
-    print(m)
+    m = get_matches(sequence)
     fold = get_abs_path(m)
-
-    seq = HPFold(sequence)
-    absfold = make_absfold(fold)
-    relfold = make_relfold(fold)
-    if len(absfold) == len(seq) - 1:
-        seq.SetAbsFold(absfold)
-    elif len(relfold) == len(seq) - 1:
-        seq.SetRelFold(relfold)
-
-    return fold, seq
+    our_score = score(sequence, fold)
+    return fold, our_score
 
 
 def main():
     # get command line arguments
-    S, benchmarks = parse_arguments()
+    S, benchmarks, hpview_location = parse_arguments()
 
     # run program on benchmarks
-    if benchmarks:
-        # read in benchmark strings
-        in_file = "benchmarks.txt"
-        if os.path.exists(in_file):
-             hp_strings = read_in_hp_strings(in_file)
-        else:
-            sys.exit("Error: " + in_file + " does not exist!")
-
+    if benchmarks != "":
         # file that holds the scores for each hp string
+        hp_strings = read_in_hp_strings(benchmarks)
+
         out_file = "approximation_results.txt"
         if os.path.exists(out_file):
              os.remove(out_file)
@@ -347,29 +305,39 @@ def main():
             print("Using sequence: " + sequence)
 
             start_time = time.time()
-            fold, seq = hp(sequence)
+            fold, our_score = hp(sequence)
             end_time = time.time()
 
             print("Fold in absolute format:", fold)
             print("\nElapsed time:", end_time-start_time)
+            print("Our score:", our_score)
             print("Benchmark score:", hp_string[1])
-            score = seq.PrintFold()
 
             # write performance of the algorithm to a file
             with open(out_file, "a") as out:
-                out.write(str(count) + ": " + hp_string[0] + " " + fold + " -" + str(score) + "\n")
+                out.write(str(count) + ": " + hp_string[0] + " " + fold + " -" + str(our_score) + "\n")
             count += 1
+
+            # validate the score by running hpview3k
+            if hpview_location != "":
+                print("\nValidation:")
+                os.system("python3 " + hpview_location + " " + sequence + " " + fold)
     else: # run program on input sequence
         sequence = S
-        print("Using sequence: " + sequence)
+        print("\nUsing sequence: " + sequence)
 
         start_time = time.time()
-        fold, seq = hp(sequence)
+        fold, our_score = hp(sequence)
         end_time = time.time()
 
         print("Fold in absolute format:", fold)
         print("\nElapsed time:", end_time-start_time)
-        score = seq.PrintFold()
+        print("Our score:", our_score)
+
+        # validate the score by running hpview3k
+        if hpview_location != "":
+            print("\nValidation:")
+            os.system("python3 " + hpview_location + " " + sequence + " " + fold)
 
 
 if __name__ == '__main__':
