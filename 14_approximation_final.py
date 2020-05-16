@@ -24,6 +24,7 @@ def parse_arguments():
     S = args.s
     if args.b != "":
         benchmarks = args.b
+        # check whether the benchmarks file exists in the given location
         if not os.path.exists(benchmarks):
             sys.exit("Error: " + benchmarks + " does not exist!")
     if args.v != "":
@@ -45,11 +46,28 @@ def read_in_hp_strings(file):
 
     for line in lines:
         split = line.split(" ")
-        print(split)
         split[2] = int(split[2]) * -1 # remove - infront of benchmarks score
         hp_strings.append(split[1:])
 
     return hp_strings
+
+
+def even(S):
+    """ Hydrophobes in S at even-indexed positions """
+    result = 0
+    for i in range(len(S)):
+        if S[i] == "h" and i % 2 == 0:
+            result += 1
+    return result
+
+
+def odd(S):
+    """ Hydrophobes in S at odd-indexed positions """
+    result = 0
+    for i in range(len(S)):
+        if S[i] == "h" and i % 2 == 1:
+            result += 1
+    return result
 
 
 def get_matches(seq_string):
@@ -75,7 +93,6 @@ def get_matches(seq_string):
             match.append(y[i] and x[i] == equals_first)
         if i >= l//2:
             match.append(y[i] and x[i] != equals_first)
-        # There might be a bug here!
 
     return match
 

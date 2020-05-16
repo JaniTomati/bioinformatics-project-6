@@ -66,7 +66,8 @@ def match(S):
     count_left = 0
     count_right = 0
 
-    while front <= 1/2 * len(S) or back >= 1/2 * len(S):
+    while front < 1/2 * len(S) or back >= 1/2 * len(S):
+        print(front, back)
         if S[front] == "h" and S[back] == "h":
             if front % 2 == 0 and back % 2 == 1: # evens from the left, with odds from the right
                 matching_left.append((front, back))
@@ -104,10 +105,13 @@ def create_absolute_format(current_match, next_match, dir):
     else: # make a turn
         turn = floor(dst / 2)
         if dst % 2 == 0:
+            if dir == "west":
+                fold += direction[dir][1]
             fold += (turn - 1) * direction[dir][1]
             fold += direction[dir][0]
             fold += (turn - 1) * direction[dir][2]
-            fold += direction[dir][0]
+            if dir == "east":
+                fold += direction[dir][0]
         else:
             fold += turn * direction[dir][1]
             fold += direction[dir][0]
@@ -148,11 +152,11 @@ def fold(S):
         fold2 += create_absolute_format(matching[i][1], matching[i + 1][1], "west")
 
     # check everything after last match
-    if matching[0][1] != len(S):
-        fold2 += create_absolute_format(matching[0][1], len(S) - 1, "west")
+    if matching[0][1] != len(S) - 2:
+        fold2 += create_absolute_format(matching[0][1], len(S) - 2, "west")
 
     # match from last match upper half to end
-    if matching[-1][0] != half:
+    if matching[-1][0] != half - 1:
         fold1 += create_absolute_format(matching[-1][0], half, "east")
 
     # match from end to first match lower half
@@ -160,7 +164,7 @@ def fold(S):
         fold2 += create_absolute_format(half, matching[-1][1], "west")
 
     # create full fold
-    F = fold1 + "s" +fold2[::-1]
+    F = fold1 +fold2[::-1]
 
     print(F)
     print(len(S), len(F))
